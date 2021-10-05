@@ -1,0 +1,27 @@
+[tool.poetry]
+authors = ["Didier SCHMITT <dschmitt@equancy.com>"]
+description = "Datalake Catalog"
+license = "MIT"
+name = "datalake-catalog"
+version = "0.0.0"
+
+[tool.poetry.dependencies]
+Flask = "^2.0.2"
+Flask-JWT = "^0.3.2"
+click = "^8.0.1"
+pony = "^0.7.14"
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+black = "^21.9b0"
+flake9 = "^3.8.3"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+
+[tool.flake8]
+ignore = "E501,W503"
+
+[tool.poetry.scripts]
+catalog = "datalake_catalog.main:cli"
