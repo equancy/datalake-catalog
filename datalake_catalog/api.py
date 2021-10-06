@@ -24,7 +24,7 @@ def get_entry(entry_id):
 def put_entry(entry_id):
     role = current_user["role"]
     if role not in ("admin", "editor"):
-        return jsonify(message="Forbidden"), 403
+        abort(403)
 
     try:
         catalog_entry = Catalog[entry_id]
@@ -35,5 +35,3 @@ def put_entry(entry_id):
         catalog_entry = Catalog(key=entry_id, spec=request.get_json())
         app.logger.info(f"User '{current_user['user']}' created the entry '{entry_id}'")
         return jsonify(message="OK"), 201
-    
-    

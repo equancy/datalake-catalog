@@ -1,13 +1,12 @@
 from flask import Flask, jsonify
+from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 
-@app.errorhandler(404)
-def error_404(error):
-    return jsonify(message="Not found"), 404
 
-
-@app.errorhandler(400)
-def error_400(error):
-    return jsonify(message="Bad request"), 400
-
+@app.errorhandler(HTTPException)
+def handle_exception(error):
+    if error.code >= 500:
+        app.logger.error(error)
+    
+    return jsonify(message=error.name), error.code
