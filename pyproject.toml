@@ -11,6 +11,7 @@ Flask-JWT-Extended = "^4.3.0"
 click = "^8.0.1"
 pony = "^0.7.14"
 python = "^3.8"
+jsonschema = "^4.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"

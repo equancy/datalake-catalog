@@ -4,6 +4,13 @@ from datalake_catalog.app import app
 from datalake_catalog.model import Catalog
 from pony.orm.core import ObjectNotFound
 
+import json
+from jsonschema import validate
+from pkg_resources import resource_stream
+
+with resource_stream("datalake_catalog", "schema.json") as f:
+    schema = json.load(f)
+
 
 @app.get("/catalog/entry")
 def get_entries():
@@ -26,6 +33,8 @@ def put_entry(entry_id):
     if role not in ("admin", "editor"):
         abort(403)
 
+
+    validate(request.get_json(), schema)
     try:
         catalog_entry = Catalog[entry_id]
         catalog_entry.spec = request.get_json()

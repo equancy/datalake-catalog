@@ -1,0 +1,129 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "definitions": {
+        "entry": {
+            "type": "object",
+            "properties": {
+                "metadata": {
+                    "$ref": "#/definitions/metadata"
+                },
+                "columns": {
+                    "$ref": "#/definitions/columns"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "storages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/storage"
+                    }
+                },
+                "gdpr": {
+                    "$ref": "#/definitions/gdpr"
+                }
+            },
+            "required": [
+                "metadata",
+                "columns",
+                "location",
+                "storages"
+            ],
+            "additionalProperties": false
+        },
+        "storage": {
+            "type": "string",
+            "enum": [
+                "vgf-datalake-v2-quality",
+                "vgf-datalake-v2-pseudonymized",
+                "vgf-datalake-v2-pii",
+                "vgf-datalake-v2-lakeshore"
+            ]
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "feed": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "domain",
+                "source",
+                "feed"
+            ]
+        },
+        "gdpr": {
+            "type": "object",
+            "properties": {
+                "anonymization": {
+                    "type": "object",
+                    "properties": {
+                        "from": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "from"
+                    ]
+                },
+                "store_hashes": {
+                    "type": "boolean"
+                }
+            },
+            "additionalProperties": false
+        },
+        "columns": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/column"
+            }
+        },
+        "column": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "str",
+                        "number",
+                        "date"
+                    ]
+                },
+                "pii": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "type": "object",
+    "properties": {
+        "domain": {
+            "type": "string"
+        },
+        "provider": {
+            "type": "string"
+        },
+        "feed": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": false
+}
