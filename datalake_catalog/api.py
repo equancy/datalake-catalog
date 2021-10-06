@@ -2,33 +2,38 @@ from flask import jsonify, request, abort
 from flask_jwt_extended import jwt_required, current_user
 from datalake_catalog.app import app
 from datalake_catalog.model import Catalog
+from pony.orm.core import ObjectNotFound
 
 
-@app.get("/catalog")
+@app.get("/catalog/entry")
 def get_entries():
     l = Catalog.select()
     return jsonify([c.key for c in l]), 200
 
 
-@app.get("/catalog/<entry_id>")
+@app.get("/catalog/entry/<entry_id>")
 def get_entry(entry_id):
     e = Catalog.get(key=entry_id)
     if e is None:
         abort(404)
-    return jsonify({"key": entry_id, "location": e.location}), 200
+    return jsonify(e.spec), 200
 
 
-@app.put("/catalog/<entry_id>")
+@app.put("/catalog/entry/<entry_id>")
 @jwt_required()
 def put_entry(entry_id):
-    r = current_user["role"]
-    if r not in ("admin", "editor"):
+    role = current_user["role"]
+    if role not in ("admin", "editor"):
         return jsonify(message="Forbidden"), 403
-    d = request.get_json()
-    e = Catalog[entry_id]
-    if e is not None:
-        e.location = d["location"]
-    else:
-        e = Catalog(key=entry_id, location=d["location"])
-    app.logger.info(f"User '{current_user['user']}' changed the entry '{entry_id}'")
-    return jsonify(message="OK"), 200
+
+    try:
+        catalog_entry = Catalog[entry_id]
+        catalog_entry.spec = request.get_json()
+        app.logger.info(f"User '{current_user['user']}' changed the entry '{entry_id}'")
+        return jsonify(message="OK"), 200
+    except ObjectNotFound:
+        catalog_entry = Catalog(key=entry_id, spec=request.get_json())
+        app.logger.info(f"User '{current_user['user']}' created the entry '{entry_id}'")
+        return jsonify(message="OK"), 201
+    
+    
