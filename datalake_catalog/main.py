@@ -8,21 +8,15 @@ import datalake_catalog.security
 import datalake_catalog.api
 
 
-app.config.update(
-    SECRET_KEY=b64decode("o8wm6b3hRIM01liXlbqep44DumtXB0pkONAJB3HQGHU="),
-    JWT_TOKEN_LOCATION=["headers"],
-    JWT_ALGORITHM="HS256",
-    JWT_DECODE_ALGORITHMS="HS256",
-    JWT_HEADER_NAME="Authorization",
-    JWT_HEADER_TYPE="Bearer",
-    PONY={
+app.config["SECRET_KEY"] = b64decode("o8wm6b3hRIM01liXlbqep44DumtXB0pkONAJB3HQGHU=")
+
+db.bind(
+    {
         "provider": "sqlite",
         "filename": "/Users/dschmitt/projects/equancy/technologies/datalake-catalog/catalog.sqlite",
         "create_db": True,
-    },
+    }
 )
-Pony(app)
-db.bind(**app.config["PONY"])
 db.generate_mapping(create_tables=True)
 
 
