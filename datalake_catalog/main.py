@@ -1,23 +1,17 @@
 import click
-from base64 import b64decode
+
 from flask_jwt_extended import create_access_token
 from pony.flask import Pony
 from datalake_catalog.app import app
-from datalake_catalog.model import db
+from datalake_catalog.model import db, connect
 import datalake_catalog.security
 import datalake_catalog.api
 
 
-app.config["SECRET_KEY"] = b64decode("o8wm6b3hRIM01liXlbqep44DumtXB0pkONAJB3HQGHU=")
+app.config.from_object("datalake_catalog.settings.Default")
+app.config.from_envvar("CATALOG_SETTINGS")
 
-db.bind(
-    {
-        "provider": "sqlite",
-        "filename": "/Users/dschmitt/projects/equancy/technologies/datalake-catalog/catalog.sqlite",
-        "create_db": True,
-    }
-)
-db.generate_mapping(create_tables=True)
+connect(app.config["DB_STRING"])
 
 
 @click.group()
@@ -36,7 +30,7 @@ def create_api_key():
         click.echo(
             create_access_token(
                 identity="Paul",
-                additional_claims={"role": "editor"},
+                additional_claims={"role": "author"},
                 expires_delta=False,
             )
         )

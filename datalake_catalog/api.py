@@ -5,17 +5,30 @@ from datalake_catalog.model import Catalog
 from pony.orm.core import ObjectNotFound
 
 import json
-from jsonschema import validate
+from jsonschema import Draft7Validator
 from pkg_resources import resource_stream
 
-with resource_stream("datalake_catalog", "schema.json") as f:
+with resource_stream("datalake_catalog", "schemas/entry.json") as f:
     schema = json.load(f)
+Draft7Validator.check_schema(schema)
+validator = Draft7Validator(schema)
 
 
-@app.get("/catalog/entry")
+def check_role_author():
+    if current_user["role"] not in ("admin", "author"):
+        abort(403)
+
+
+@app.get("/catalog")
 def get_entries():
-    l = Catalog.select()
-    return jsonify([c.key for c in l]), 200
+    if "full" in request.args:
+        return jsonify({e.key: e.spec for e in Catalog.select()}), 200
+    return jsonify([e.key for e in Catalog.select()]), 200
+
+
+@app.get("/catalog/schema")
+def get_schema():
+    return jsonify(schema), 200
 
 
 @app.get("/catalog/entry/<entry_id>")
@@ -26,21 +39,32 @@ def get_entry(entry_id):
     return jsonify(e.spec), 200
 
 
+def upsert_entry(key, spec):
+    validator.validate(spec)
+    try:
+        e = Catalog[key]
+        e.spec = spec
+        app.logger.info(f"User '{current_user['user']}' changed the entry '{key}'")
+    except ObjectNotFound:
+        e = Catalog(key=key, spec=spec)
+        app.logger.info(f"User '{current_user['user']}' created the entry '{key}'")
+
+
 @app.put("/catalog/entry/<entry_id>")
 @jwt_required()
 def put_entry(entry_id):
-    role = current_user["role"]
-    if role not in ("admin", "editor"):
-        abort(403)
+    check_role_author()
+    upsert_entry(entry_id, request.get_json())
+    return jsonify(message="OK"), 200
 
 
-    validate(request.get_json(), schema)
-    try:
-        catalog_entry = Catalog[entry_id]
-        catalog_entry.spec = request.get_json()
-        app.logger.info(f"User '{current_user['user']}' changed the entry '{entry_id}'")
-        return jsonify(message="OK"), 200
-    except ObjectNotFound:
-        catalog_entry = Catalog(key=entry_id, spec=request.get_json())
-        app.logger.info(f"User '{current_user['user']}' created the entry '{entry_id}'")
-        return jsonify(message="OK"), 201
+@app.post("/catalog/import")
+@jwt_required()
+def post_import():
+    check_role_author()
+    if "truncate" in request.args:
+        Catalog.select().delete(bulk=True)
+        app.logger.info(f"User '{current_user['user']}' truncated the entries")
+    for key, value in request.get_json().items():
+        upsert_entry(key, value)
+    return jsonify(message="OK"), 200

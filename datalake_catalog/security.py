@@ -3,13 +3,6 @@ from flask_jwt_extended import JWTManager
 from datalake_catalog.app import app
 
 jwt = JWTManager(app)
-app.config.update(
-    JWT_TOKEN_LOCATION=["headers"],
-    JWT_ALGORITHM="HS256",
-    JWT_DECODE_ALGORITHMS="HS256",
-    JWT_HEADER_NAME="Authorization",
-    JWT_HEADER_TYPE="Bearer",
-)
 
 
 @jwt.user_lookup_loader
@@ -19,11 +12,13 @@ def user_lookup_callback(jwt_header, jwt_payload):
 
 @jwt.expired_token_loader
 def expired_token_callback(jwt_header, jwt_payload):
+    app.logger.warning(f"Received an expired token")
     return jsonify(message="Unauthorized"), 401
 
 
 @jwt.invalid_token_loader
 def invalid_token_callback(reason):
+    app.logger.warning(f"Received an invalid token. {reason}")
     return jsonify(message="Unauthorized"), 401
 
 
