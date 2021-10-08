@@ -1,0 +1,93 @@
+{
+    "domain": "unit-test",
+    "provider": "equancy",
+    "feed": "mock",
+
+    "metadata": {
+        "key": "value",
+        "struct": {},
+        "list": []
+    },
+    "storage": {
+        "path": {
+            "standard": true,
+            "pattern": "{date}_{feed}.csv",
+            "params": {
+                "date": "YYYY-MM-DD"
+            }
+        },
+        "stores": [
+            "stronghold",
+            "pseudonymized"
+        ]
+    },
+    "collect": {
+        "files": [
+            {
+                "landing_folder" : "RVS/...",
+                "pattern": "(\\d{8})_\\d{6}/My-File\\.csv(\\.\\d{8}_\\d{6})?$",
+                "pattern_extract": {
+                    "date": "{capture[0]}"
+                },
+                "action_name": "transform_csv",
+                "action_params": {
+                    "delimiter": ";",
+                    "newline": "\\r\\n",
+                    "header": 1,
+                    "encoding": "ISO-8859-1"
+                },
+                "archive": true
+            },
+            {
+                "pattern": "(\\d{8})_myfile\\.csv$",
+                "pattern_extract": {
+                    "date": "{capture[0]}"
+                },
+                "action_name": "transfer",
+                "action_params": {
+                    "destination": "stronghold"
+                },
+                "archive": true
+            },
+            {
+                "pattern": "(\\d{8})_myfile\\.csv\\.OK$",
+                "action_name": "ignore",
+                "archive": false
+            }
+        ]
+    },
+    "columns": [
+        {
+            "name": "column1",
+            "description": "lorem ipsum",
+            "type": "string"
+        },
+        {
+            "name": "column2",
+            "type": "number",
+            "gdpr": {
+                "pii": true,
+                "drop": false
+            },
+            "dqm": {
+                "drop_on_error": "value",
+                "controls": [
+                    {
+                        "function": ["argv"]
+                    }
+                ]
+            }
+        }
+    ],
+    "gdpr": {
+        "anonymization": {
+            "from": "column_id" 
+        }
+    },
+    "delivery": {
+        "frequency": "daily",
+        "not_before": "a time limit",
+        "not_after": "a time limit",
+        "monitor": false
+    }
+}

@@ -2,6 +2,9 @@ from base64 import b64decode
 
 
 class Default:
+    DEBUG = False
+    ENV = "production"
+
     JWT_TOKEN_LOCATION = ["headers"]
     JWT_ALGORITHM = "HS256"
     JWT_DECODE_ALGORITHMS = "HS256"

@@ -1,129 +1,127 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "definitions": {
-        "entry": {
-            "type": "object",
-            "properties": {
-                "metadata": {
-                    "$ref": "#/definitions/metadata"
-                },
-                "columns": {
-                    "$ref": "#/definitions/columns"
-                },
-                "location": {
-                    "type": "string"
-                },
-                "storages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/storage"
-                    }
-                },
-                "gdpr": {
-                    "$ref": "#/definitions/gdpr"
-                }
-            },
-            "required": [
-                "metadata",
-                "columns",
-                "location",
-                "storages"
-            ],
-            "additionalProperties": false
-        },
-        "storage": {
-            "type": "string",
-            "enum": [
-                "vgf-datalake-v2-quality",
-                "vgf-datalake-v2-pseudonymized",
-                "vgf-datalake-v2-pii",
-                "vgf-datalake-v2-lakeshore"
-            ]
-        },
-        "metadata": {
-            "type": "object",
-            "properties": {
-                "domain": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "feed": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "domain",
-                "source",
-                "feed"
-            ]
-        },
-        "gdpr": {
-            "type": "object",
-            "properties": {
-                "anonymization": {
-                    "type": "object",
-                    "properties": {
-                        "from": {
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "from"
-                    ]
-                },
-                "store_hashes": {
-                    "type": "boolean"
-                }
-            },
-            "additionalProperties": false
-        },
-        "columns": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/column"
-            }
-        },
-        "column": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string",
-                    "enum": [
-                        "str",
-                        "number",
-                        "date"
-                    ]
-                },
-                "pii": {
-                    "type": "boolean"
-                }
-            },
-            "required": [
-                "name",
-                "type"
-            ],
-            "additionalProperties": false
-        }
-    },
+    "title": "Datalake catalog entry",
     "type": "object",
     "properties": {
-        "domain": {
-            "type": "string"
-        },
-        "provider": {
-            "type": "string"
-        },
-        "feed": {
-            "type": "string"
-        },
-        "location": {
-            "type": "string"
-        }
+        "domain":   { "type": "string" },
+        "provider": { "type": "string" },
+        "feed":     { "type": "string" },
+        "columns":  { "$ref": "#/definitions/columns" },
+        "metadata": { "$ref": "#/definitions/metadata" },
+        "storage":  { "$ref": "#/definitions/storage" },
+        "delivery": { "$ref": "#/definitions/delivery" }
     },
-    "additionalProperties": false
+    "required": [
+        "domain",
+        "provider",
+        "feed",
+        "columns",
+        "storage"
+    ],
+    "additionalProperties": true,
+    "definitions": {
+        "columns": {
+            "description": "Dataset columns definition",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "description": { "type": "string" },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "string",
+                            "number",
+                            "integer",
+                            "decimal",
+                            "date",
+                            "time",
+                            "datetime"
+                        ]
+                    },
+                    "gdpr": {
+                        "type": "object",
+                        "properties": {
+                            "pii":  { "type": "boolean" },
+                            "drop": { "type": "boolean" }
+                        },
+                        "additionalProperties": false
+                    },
+                    "dqm": { "$ref": "#/definitions/dqm" }
+                },
+                "required": ["name", "type"],
+                "additionalProperties": false
+            }
+        },
+        "dqm": {
+            "description": "Data Quality Management",
+            "type": "object",
+            "properties": {
+                "drop_on_error": { "type": "string" },
+                "controls": {
+                    "type": "array",
+                    "description": "controls is a list of functions names with their arguments vector",
+                    "items": {
+                        "type": "object",
+                        "maxProperties": 1,
+                        "patternProperties": {
+                            "^[A-Za-z0-9_]+$": {
+                                "type": "array",
+                                "items": { "type":"string" }
+                            }
+                        }
+                    }
+                }
+            },
+            "required": ["controls"],
+            "additionalProperties": false
+        },
+        "metadata": {
+            "description": "Any metadata that helps describing the dataset",
+            "type": "object",
+            "minProperties": 1
+        },
+        "storage": {
+            "description": "Informations about how and where dataset is stored",
+            "type": "object",
+            "properties": {
+                "path": {"$ref": "#/definitions/storage-path"},
+                "stores":{
+                    "type":"array", 
+                    "items": { "type":"string" }
+                }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+        },
+        "storage-path": {
+            "description": "The path for the dataset in a storage",
+            "type":"object",
+            "properties": {
+                "pattern": { "type":"string" },
+                "standard": { "type":"boolean" },
+                "params":{
+                    "type":"object",
+                    "patternProperties": {
+                        "^[A-Za-z0-9_]+$": { "type": "string" }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": ["pattern"],
+            "additionalProperties": false
+        },
+        "delivery": {
+            "type": "object",
+            "properties": {
+                "frequency":  { "type": "string", "description": "The frequency of new datasets like daily, weekly, monthly..." },
+                "not_before": { "type": "string", "description": "When a new dataset can be expected" },
+                "not_after":  { "type": "string", "description": "When a dataset can be considered late or missing" },
+                "monitor":    { "type": "boolean", "description": "Whether the dataset arrival is monitored or not" }
+            },
+            "required": ["frequency"],
+            "additionalProperties": true
+        }
+    }
 }
