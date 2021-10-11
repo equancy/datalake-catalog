@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Datalake storage configuration",
+    "type": "object",
+    "patternProperties": {
+        "^[A-Za-z0-9_\\-]+$": { "$ref": "#/definitions/storage" }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "storage": {
+            "description": "Storage bucket configuration",
+            "type": "object",
+            "properties": {
+                "bucket": { "type": "string" },
+                "prefix": { "type": "string" }
+            },
+            "required": ["bucket"],
+            "additionalProperties": false
+        }
+    }
+}

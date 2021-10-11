@@ -101,7 +101,6 @@
             "type":"object",
             "properties": {
                 "pattern": { "type":"string" },
-                "standard": { "type":"boolean" },
                 "params":{
                     "type":"object",
                     "patternProperties": {

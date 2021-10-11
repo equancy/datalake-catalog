@@ -1,4 +1,5 @@
 from pony import orm
+from pony.orm.core import ObjectNotFound
 from pony.flask import Pony
 from datalake_catalog.app import app
 from urllib.parse import urlparse
@@ -36,3 +37,40 @@ def connect(db_string):
 class Catalog(db.Entity):
     key = orm.PrimaryKey(str)
     spec = orm.Required(orm.Json)
+
+    domain = orm.Required(str)
+    provider = orm.Required(str)
+    feed = orm.Required(str)
+
+
+class Storage(db.Entity):
+    key = orm.PrimaryKey(str)
+    bucket = orm.Required(str)
+    prefix = orm.Optional(str)
+
+
+def upsert_catalog(key, spec):
+    domain = spec["domain"]
+    provider = spec["provider"]
+    feed = spec["feed"]
+    try:
+        e = Catalog[key]
+        e.spec = spec
+        e.domain = domain
+        e.provider = provider
+        e.feed = feed
+    except ObjectNotFound:
+        e = Catalog(key=key, spec=spec, domain=domain, provider=provider, feed=feed)
+
+
+def upsert_storage(key, bucket, prefix=None):
+    try:
+        s = Storage[key]
+        s.bucket = bucket
+        if prefix is not None:
+            s.prefix = prefix
+    except ObjectNotFound:
+        if prefix is not None:
+            s = Storage(key=key, bucket=bucket, prefix=prefix)
+        else:
+            s = Storage(key=key, bucket=bucket)
