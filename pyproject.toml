@@ -28,3 +28,8 @@ ignore = "E501,W503"
 
 [tool.poetry.scripts]
 catalog = "datalake_catalog.main:cli"
+
+[tool.pytest.ini_options]
+addopts = "-ra -v --no-header"
+minversion = "6.0"
+testpaths = ["tests"]

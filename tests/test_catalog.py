@@ -50,7 +50,7 @@ def expired_token():
     with app.app_context():
         token = create_access_token(
             identity="Test Expired",
-            expires_delta=timedelta(microseconds=1),
+            expires_delta=timedelta(seconds=-1),
         )
     return {"Authorization": f"Bearer {token}"}
 
@@ -112,7 +112,7 @@ def test_api_token(client, hacker_token, expired_token):
     assert rv.status.startswith("401"), "HTTP Status is wrong"
 
     # Expired token shall not pass
-    sleep(1)
+    # sleep(1)
     rv = client.put(endpoint, headers=expired_token)
     assert rv.status.startswith("401"), "HTTP Status is wrong"
 

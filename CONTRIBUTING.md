@@ -14,5 +14,5 @@ poetry run flask run
 
 ```shell
 poetry install
-poetry run coverage run -m pytest -v && poetry run coverage report
+poetry run coverage run -m pytest && poetry run coverage report -m
 ```
