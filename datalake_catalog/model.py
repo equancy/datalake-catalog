@@ -8,7 +8,7 @@ db = orm.Database()
 Pony(app)
 
 
-def connect(db_string):
+def connect(db_string): # pragma: no cover
     r = urlparse(db_string)
     if r.scheme == "sqlite":
         path = r.path[1:]  # strip the first /
@@ -65,14 +65,8 @@ def upsert_catalog(key, spec):
         e = Catalog(key=key, spec=spec, domain=domain, provider=provider, feed=feed)
 
 
-def upsert_storage(key, bucket, prefix=None):
-    try:
-        s = Storage[key]
-        s.bucket = bucket
-        if prefix is not None:
-            s.prefix = prefix
-    except ObjectNotFound:
-        if prefix is not None:
-            s = Storage(key=key, bucket=bucket, prefix=prefix)
-        else:
-            s = Storage(key=key, bucket=bucket)
+def insert_storage(key, bucket, prefix=None):
+    if prefix is not None:
+        s = Storage(key=key, bucket=bucket, prefix=prefix)
+    else:
+        s = Storage(key=key, bucket=bucket)

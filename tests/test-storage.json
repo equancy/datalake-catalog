@@ -1,0 +1,9 @@
+{
+    "stronghold": {
+        "bucket": "datalake-v2-stronghold"
+    },
+    "landing": {
+        "bucket": "datalake-v2-landing",
+        "prefix": "input"
+    }
+}

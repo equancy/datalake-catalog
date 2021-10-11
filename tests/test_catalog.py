@@ -83,6 +83,12 @@ def valid_entry():
         return json.load(f)
 
 
+@pytest.fixture
+def valid_storage():
+    with open("tests/test-storage.json", "r") as f:
+        return json.load(f)
+
+
 def test_health(client):
     rv = client.get("/health")
     assert rv.status.startswith("200"), "HTTP Status is wrong"
@@ -111,30 +117,129 @@ def test_api_token(client, hacker_token, expired_token):
     assert rv.status.startswith("401"), "HTTP Status is wrong"
 
 
-def test_create(client, guest_token, author_token, admin_token, valid_entry):
-    endpoint = "/catalog/entry/test"
+def test_schema(client):
+    rv = client.get("/catalog/schema")
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert (
+        rv.get_json()["$schema"] == "http://json-schema.org/draft-07/schema#"
+    ), "Response payload is wrong"
+
+
+def test_catalog_management(client, guest_token, author_token, valid_entry):
+    import_endpoint = "/catalog/import"
+    create_endpoint = "/catalog/entry/test-created"
+    payload = {"test-imported": valid_entry}
+
+    # Catalog is empty at first
+    rv = client.get("/catalog")
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert rv.get_json() == [], "Catalog should be empty"
+
+    # ---------------------------
+    # Batch import
+
+    # authorization is required
+    rv = client.post(import_endpoint)
+    assert rv.status.startswith("401"), "HTTP Status is wrong"
+
+    # permission is required
+    rv = client.post(import_endpoint, headers=guest_token)
+    assert rv.status.startswith("403"), "HTTP Status is wrong"
+
+    # an author may import
+    rv = client.post(import_endpoint, json=payload, headers=author_token)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+
+    # catalog schema is validated
+    rv = client.post(import_endpoint, json={"catalog": "bad"}, headers=author_token)
+    assert rv.status.startswith("400"), "HTTP Status is wrong"
+
+    # once imported, catalog is available
+    rv = client.get("/catalog", query_string={"full": "yes"})
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert rv.get_json() == payload, "Catalog should be predictible"
+
+    # import is idempotent
+    rv = client.post(import_endpoint, json=payload, headers=author_token)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    rv = client.get("/catalog", query_string={"full": "yes"})
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert rv.get_json() == payload, "Catalog import should be idempotent"
+
+    # ---------------------------
+    # Single entry creation
 
     # entry does not exist at first
-    rv = client.get(endpoint)
+    rv = client.get(create_endpoint)
     assert rv.status.startswith("404"), "HTTP Status is wrong"
+
+    # authorization is required
+    rv = client.put(create_endpoint)
+    assert rv.status.startswith("401"), "HTTP Status is wrong"
+
+    # permission is required
+    rv = client.put(create_endpoint, headers=guest_token)
+    assert rv.status.startswith("403"), "HTTP Status is wrong"
+
+    # an author may manage
+    rv = client.put(create_endpoint, json=valid_entry, headers=author_token)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+
+    # entry is validated before creation
+    rv = client.put(create_endpoint, json={"catalog": "bad"}, headers=author_token)
+    assert rv.status.startswith("400"), "HTTP Status is wrong"
+
+    # once created, entry is available
+    rv = client.get(create_endpoint)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert rv.get_json() == valid_entry, "Entry is not the same"
+
+    # creation is merged with import
+    rv = client.get("/catalog")
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert not set(rv.get_json()) ^ {
+        "test-created",
+        "test-imported",
+    }, "Catalog should be predictible"
+
+    # ---------------------------
+    # Import can be authoritative
+
+    # import can truncate
+    rv = client.post(
+        import_endpoint,
+        query_string={"truncate": "yes"},
+        json=payload,
+        headers=author_token,
+    )
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+
+    # once truncated and imported, catalog is predictible
+    rv = client.get("/catalog?full")
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert rv.get_json() == payload, "Catalog should be predictible"
+
+
+def test_storage(client, author_token, admin_token, valid_storage):
+    endpoint = "/storage"
+    # Storage is empty at first
+    rv = client.get(endpoint)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert rv.get_json() == {}, "Storage should be empty"
 
     # authorization is required
     rv = client.put(endpoint)
     assert rv.status.startswith("401"), "HTTP Status is wrong"
 
     # permission is required
-    rv = client.put(endpoint, headers=guest_token)
+    rv = client.put(endpoint, headers=author_token)
     assert rv.status.startswith("403"), "HTTP Status is wrong"
 
-    # an author may manage
-    rv = client.put(endpoint, json=valid_entry, headers=author_token)
+    # an admin may import
+    rv = client.put(endpoint, json=valid_storage, headers=admin_token)
     assert rv.status.startswith("200"), "HTTP Status is wrong"
 
-    # an admin may also manage
-    rv = client.put(endpoint, json=valid_entry, headers=admin_token)
+    # once imported, storage is available
+    rv = client.get("/storage")
     assert rv.status.startswith("200"), "HTTP Status is wrong"
-
-    # once creaed, entry is available
-    rv = client.get(endpoint)
-    assert rv.status.startswith("200"), "HTTP Status is wrong"
-    assert rv.get_json() == valid_entry, "Entry is not the same"
+    assert rv.get_json().keys() == valid_storage.keys(), "Storage should be predictible"

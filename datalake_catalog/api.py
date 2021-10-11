@@ -1,7 +1,7 @@
 from flask import jsonify, request, abort
 from flask_jwt_extended import jwt_required, current_user
 from datalake_catalog.app import app
-from datalake_catalog.model import Catalog, upsert_catalog, Storage, upsert_storage
+from datalake_catalog.model import Catalog, upsert_catalog, Storage, insert_storage
 
 import json
 from jsonschema import Draft7Validator
@@ -120,7 +120,7 @@ def put_storage():
     Storage.select().delete(bulk=True)
 
     for key, value in request.get_json().items():
-        upsert_storage(
+        insert_storage(
             key, value["bucket"], value["prefix"] if "prefix" in value else None
         )
     app.logger.info(f"User '{current_user['user']}' updated the Storage configuration")
