@@ -65,6 +65,7 @@
                     "items": {
                         "type": "object",
                         "maxProperties": 1,
+                        "additionalProperties": false,
                         "patternProperties": {
                             "^[A-Za-z0-9_]+$": {
                                 "type": "array",

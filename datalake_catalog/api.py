@@ -6,6 +6,7 @@ from pony.orm.core import ObjectNotFound
 
 import json
 from jsonschema import Draft7Validator
+from jsonschema.exceptions import ValidationError
 from pkg_resources import resource_stream
 
 with resource_stream("datalake_catalog", "schemas/entry.json") as f:
@@ -39,8 +40,11 @@ def get_entry(entry_id):
     return jsonify(e.spec), 200
 
 
-def upsert_entry(key, spec):
+def validate_spec(spec):
     validator.validate(spec)
+
+
+def upsert_entry(key, spec):
     try:
         e = Catalog[key]
         e.spec = spec
@@ -50,10 +54,16 @@ def upsert_entry(key, spec):
         app.logger.info(f"User '{current_user['user']}' created the entry '{key}'")
 
 
+@app.errorhandler(ValidationError)
+def handle_validation_error(error):
+    return jsonify(message=f"at {error.json_path} : {error.message}"), 400
+
+
 @app.put("/catalog/entry/<entry_id>")
 @jwt_required()
 def put_entry(entry_id):
     check_role_author()
+    validate_spec(request.get_json())
     upsert_entry(entry_id, request.get_json())
     return jsonify(message="OK"), 200
 
@@ -62,6 +72,15 @@ def put_entry(entry_id):
 @jwt_required()
 def post_import():
     check_role_author()
+    error_messages = {}
+    for key, value in request.get_json().items():
+        try:
+            validate_spec(value)
+        except ValidationError as error:
+            error_messages[key] = f"at {error.json_path}: {error.message}"
+    if len(error_messages.keys()) > 0:
+        return jsonify(message="Catalog validation failed", failures=error_messages), 400
+
     if "truncate" in request.args:
         Catalog.select().delete(bulk=True)
         app.logger.info(f"User '{current_user['user']}' truncated the entries")
