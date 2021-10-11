@@ -10,7 +10,6 @@
     },
     "storage": {
         "path": {
-            "standard": true,
             "pattern": "{date}_{feed}.csv",
             "params": {
                 "date": "YYYY-MM-DD"

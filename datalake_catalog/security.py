@@ -7,7 +7,10 @@ jwt = JWTManager(app)
 
 @jwt.user_lookup_loader
 def user_lookup_callback(jwt_header, jwt_payload):
-    return {"user": jwt_payload["sub"], "role": jwt_payload["role"]}
+    return {
+        "user": jwt_payload["sub"],
+        "role": jwt_payload["role"] if "role" in jwt_payload else "",
+    }
 
 
 @jwt.expired_token_loader

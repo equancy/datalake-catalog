@@ -3,7 +3,7 @@ import click
 from flask_jwt_extended import create_access_token
 from pony.flask import Pony
 from datalake_catalog.app import app
-from datalake_catalog.model import db, connect
+from datalake_catalog.model import connect
 import datalake_catalog.security
 import datalake_catalog.api
 

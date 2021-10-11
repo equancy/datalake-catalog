@@ -29,6 +29,11 @@ def check_role_admin():
         abort(403)
 
 
+@app.get("/health")
+def get_health():
+    return jsonify(message="OK"), 200
+
+
 @app.get("/catalog")
 def get_catalog():
     if "full" in request.args:

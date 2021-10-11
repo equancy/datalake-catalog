@@ -29,6 +29,8 @@ def connect(db_string):
         )
     elif r.scheme == "oracle":
         db.bind(provider="oracle", user=r.username, password=r.password, dsn=r.hostname)
+    elif r.scheme == "local":
+        db.bind(provider="sqlite", filename=":memory:")
     else:
         raise ValueError(f"Unknown provider '{r.scheme}' in database connection string")
     db.generate_mapping(create_tables=True)
