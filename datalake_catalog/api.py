@@ -135,3 +135,28 @@ def put_configuration():
         c.value = value
     app.logger.info(f"User '{current_user['user']}' updated the global configuration")
     return jsonify(message="OK"), 200
+
+
+@app.get("/configuration/<key>")
+def get_configuration_entry(key):
+    c = Configuration.get(key=key)
+    if c is None:
+        abort(404)
+    return jsonify(c.value), 200
+
+
+@app.put("/configuration/<key>")
+@jwt_required()
+def put_configuration_entry(key):
+    check_role_admin()
+    global_schema = config_validator.schema
+    if key not in global_schema["properties"]:
+        abort(404)
+
+    local_schema = global_schema["properties"][key]
+    local_schema["$schema"] = "http://json-schema.org/draft-07/schema#"
+    SchemaValidator(local_schema).validate(request.get_json())
+
+    c = Configuration.get(key=key)
+    c.value = request.get_json()
+    return jsonify(message="OK"), 200
