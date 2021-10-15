@@ -1,14 +1,16 @@
+import json
 from pony import orm
 from pony.orm.core import ObjectNotFound
 from pony.flask import Pony
 from datalake_catalog.app import app
 from urllib.parse import urlparse
+from pkg_resources import resource_stream
 
 db = orm.Database()
 Pony(app)
 
 
-def connect(db_string): # pragma: no cover
+def connect(db_string):  # pragma: no cover
     r = urlparse(db_string)
     if r.scheme == "sqlite":
         path = r.path[1:]  # strip the first /
@@ -33,7 +35,19 @@ def connect(db_string): # pragma: no cover
         db.bind(provider="sqlite", filename=":memory:")
     else:
         raise ValueError(f"Unknown provider '{r.scheme}' in database connection string")
+    _init_db()
+
+
+def _init_db():
     db.generate_mapping(create_tables=True)
+
+    with resource_stream("datalake_catalog", f"config/default.json") as f:
+        default_config = json.load(f)
+    
+    with orm.db_session:
+        for key, value in default_config.items():
+            if Configuration.get(key=key) is None:
+                Configuration(key=key, value=value)
 
 
 class Catalog(db.Entity):
@@ -49,6 +63,11 @@ class Storage(db.Entity):
     key = orm.PrimaryKey(str)
     bucket = orm.Required(str)
     prefix = orm.Optional(str)
+
+
+class Configuration(db.Entity):
+    key = orm.PrimaryKey(str)
+    value = orm.Required(orm.Json)
 
 
 def upsert_catalog(key, spec):

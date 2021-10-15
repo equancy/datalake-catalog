@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Datalake configuration",
+    "type": "object",
+    "properties": {
+        "provider": { 
+            "description": "Cloud provider for the datalake",
+            "enum": ["aws", "gcp"] 
+        },
+        "csv_format": {
+            "description": "Standard CSV dialect for the datalake",
+            "type": "object",
+            "properties": {
+                "delimiter":    { "type": "string", "minLength": 1, "maxLength": 1 },
+                "line_break":   { "type": "string", "minLength": 1 },
+                "quote_char":   { "type": "string", "minLength": 1, "maxLength": 1 },
+                "double_quote": { "type": "boolean" },
+                "escape_char":  { "type": "string", "maxLength": 1 }
+            },
+            "required": [
+                "delimiter",
+                "line_break",
+                "quote_char",
+                "double_quote",
+                "escape_char"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "provider",
+        "csv_format"
+    ],
+    "additionalProperties": false
+}

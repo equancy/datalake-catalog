@@ -3,6 +3,7 @@ authors = ["Didier SCHMITT <dschmitt@equancy.com>"]
 description = "Datalake Catalog"
 license = "MIT"
 name = "datalake-catalog"
+repository = "https://git.equancy.cloud/equancy/data-technologies/datalake-catalog"
 version = "0.0.0"
 
 [tool.poetry.dependencies]

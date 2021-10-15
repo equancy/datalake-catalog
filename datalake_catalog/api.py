@@ -1,22 +1,24 @@
 from flask import jsonify, request, abort
 from flask_jwt_extended import jwt_required, current_user
-from datalake_catalog.app import app
-from datalake_catalog.model import Catalog, upsert_catalog, Storage, insert_storage
-
-import json
-from jsonschema import Draft7Validator
 from jsonschema.exceptions import ValidationError
-from pkg_resources import resource_stream
+from datalake_catalog.app import app
+from datalake_catalog.model import (
+    Catalog,
+    upsert_catalog,
+    Storage,
+    insert_storage,
+    Configuration,
+)
+from datalake_catalog.schemas import SchemaValidator
 
-with resource_stream("datalake_catalog", "schemas/catalog.json") as f:
-    schema = json.load(f)
-Draft7Validator.check_schema(schema)
-catalog_validator = Draft7Validator(schema)
+catalog_validator = SchemaValidator("catalog")
+storage_validator = SchemaValidator("storage")
+config_validator = SchemaValidator("configuration")
 
-with resource_stream("datalake_catalog", "schemas/storage.json") as f:
-    schema = json.load(f)
-Draft7Validator.check_schema(schema)
-storage_validator = Draft7Validator(schema)
+
+@app.errorhandler(ValidationError)
+def handle_validation_error(error):
+    return jsonify(message=f"at {error.json_path} : {error.message}"), 400
 
 
 def check_role_author():
@@ -43,7 +45,7 @@ def get_catalog():
 
 @app.get("/catalog/schema")
 def get_catalog_schema():
-    return jsonify(schema), 200
+    return jsonify(catalog_validator.schema), 200
 
 
 @app.get("/catalog/entry/<entry_id>")
@@ -56,15 +58,6 @@ def get_catalog_entry(entry_id):
 
 def validate_spec(spec):
     catalog_validator.validate(spec)
-
-
-def validate_storage(storage):
-    storage_validator.validate(storage)
-
-
-@app.errorhandler(ValidationError)
-def handle_validation_error(error):
-    return jsonify(message=f"at {error.json_path} : {error.message}"), 400
 
 
 @app.put("/catalog/entry/<entry_id>")
@@ -116,7 +109,7 @@ def get_storages():
 @jwt_required()
 def put_storage():
     check_role_admin()
-    validate_storage(request.get_json())
+    storage_validator.validate(request.get_json())
     Storage.select().delete(bulk=True)
 
     for key, value in request.get_json().items():
@@ -124,4 +117,21 @@ def put_storage():
             key, value["bucket"], value["prefix"] if "prefix" in value else None
         )
     app.logger.info(f"User '{current_user['user']}' updated the Storage configuration")
+    return jsonify(message="OK"), 200
+
+
+@app.get("/configuration")
+def get_configuration():
+    return jsonify({c.key: c.value for c in Configuration.select()}), 200
+
+
+@app.put("/configuration")
+@jwt_required()
+def put_configuration():
+    check_role_admin()
+    config_validator.validate(request.get_json())
+    for key, value in request.get_json().items():
+        c = Configuration[key]
+        c.value = value
+    app.logger.info(f"User '{current_user['user']}' updated the global configuration")
     return jsonify(message="OK"), 200
