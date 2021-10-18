@@ -75,7 +75,7 @@ class Catalog(db.Entity):
                 else:
                     fields.append(field_name) # new name reference
                     result += f"(?P<{field_name}>.+)"
-        return re.compile(f"{result}$")
+        return re.compile(f"{result}$") # ensure only suffixes are matched
 
 
 class Storage(db.Entity):

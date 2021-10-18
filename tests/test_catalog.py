@@ -142,18 +142,18 @@ def test_catalog_identify(client):
     assert rv.status.startswith("404"), "HTTP Status is wrong"
 
     # Valid path can be found
-    rv = client.get(
-        "/catalog/identify/unit-test/equancy/mock/YYYYMMDD/YYYYMMDD_mock.csv"
-    )
+    rv = client.get("/catalog/identify/unit-test/equancy/mock/YYMMDD/YYMMDD_mock.csv")
     assert rv.status.startswith("200"), "HTTP Status is wrong"
     assert len(rv.get_json()) == 1, "A single finding should be returned"
     assert rv.get_json()[0]["entry"] == "test-imported", "Entry should be predictible"
     assert rv.get_json()[0]["params"] == {
-        "date": "YYYYMMDD"
+        "date": "YYMMDD"
     }, "Path parameters should be predictible"
 
     # Backreference are taken in account
-    rv = client.get(
-        "/catalog/identify/unit-test/equancy/mock/YYYYMMDD/DDMMYYYY_mock.csv"
-    )
+    rv = client.get("/catalog/identify/unit-test/equancy/mock/YYMMDD/DDMMYY_mock.csv")
+    assert rv.status.startswith("404"), "HTTP Status is wrong"
+
+    # Dont detect inner paths
+    rv = client.get("/catalog/identify/unit-test/equancy/mock/date/date_mock.csv/more")
     assert rv.status.startswith("404"), "HTTP Status is wrong"
