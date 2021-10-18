@@ -64,13 +64,12 @@ def get_catalog_storage(entry_id):
         abort(404)
 
     entry_storage = e.spec["storage"]
-    prefix_params = {"domain": e.domain, "provider": e.provider, "feed": e.feed}
-
+    prefix_params = {}
     for param, value in request.args.items():
         if param in entry_storage["path"]["params"]:
             prefix_params[param] = value
 
-    formatter = Formatter().parse(entry_storage["path"]["pattern"])
+    formatter = Formatter().parse(e.path_pattern)
     result = ""
     is_partial = False
     for (literal_text, field_name, format_spec, conversion) in formatter:
@@ -83,6 +82,18 @@ def get_catalog_storage(entry_id):
                 break
 
     return jsonify(prefix=result, is_partial=is_partial), 200
+
+
+@app.get("/catalog/identify/<path:path>")
+def get_catalog_identify(path):
+    result = []
+    for e in Catalog.select():
+        m = e.path_regex.search(path)
+        if m is not None:
+            result.append({"entry": e.key, "params": m.groupdict()})
+    if len(result) == 0:
+        abort(404)
+    return jsonify(result), 200
 
 
 def validate_spec(spec):

@@ -1,4 +1,6 @@
 import json
+from string import Formatter
+import re
 from pony import orm
 from pony.orm.core import ObjectNotFound
 from pony.flask import Pony
@@ -58,6 +60,22 @@ class Catalog(db.Entity):
     domain = orm.Required(str)
     provider = orm.Required(str)
     feed = orm.Required(str)
+    path_pattern = orm.Required(str)
+
+    @property
+    def path_regex(self):
+        formatter = Formatter().parse(self.path_pattern)
+        fields = []
+        result = ""
+        for (literal_text, field_name, format_spec, conversion) in formatter:
+            result += re.escape(literal_text)
+            if field_name is not None:
+                if field_name in fields: # backreference for existing name
+                    result += f"(?P={field_name})"
+                else:
+                    fields.append(field_name) # new name reference
+                    result += f"(?P<{field_name}>.+)"
+        return re.compile(f"{result}$")
 
 
 class Storage(db.Entity):
@@ -86,14 +104,39 @@ def upsert_catalog(key, spec):
     domain = spec["domain"]
     provider = spec["provider"]
     feed = spec["feed"]
+
+    # Preprocess the path pattern
+    path_pattern = spec["storage"]["path"]["pattern"]
+    path_format = Formatter().parse(path_pattern)
+    path_pattern = ""
+    for (literal_text, field_name, format_spec, conversion) in path_format:
+        path_pattern += literal_text
+        if field_name is not None:
+            if field_name == "domain":
+                path_pattern += domain
+            elif field_name == "provider":
+                path_pattern += provider
+            elif field_name == "feed":
+                path_pattern += feed
+            else:
+                path_pattern += "{" + field_name + "}"
+
     try:
         e = Catalog[key]
         e.spec = spec
         e.domain = domain
         e.provider = provider
         e.feed = feed
+        e.path_pattern
     except ObjectNotFound:
-        e = Catalog(key=key, spec=spec, domain=domain, provider=provider, feed=feed)
+        e = Catalog(
+            key=key,
+            spec=spec,
+            domain=domain,
+            provider=provider,
+            feed=feed,
+            path_pattern=path_pattern,
+        )
 
 
 def insert_storage(key, bucket, prefix=None):

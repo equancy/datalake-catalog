@@ -128,9 +128,32 @@ def test_catalog_storage(client):
     assert rv.status.startswith("200"), "HTTP Status is wrong"
     assert not rv.get_json()["is_partial"], "Storage prefix should not be partial"
     assert (
-        rv.get_json()["prefix"] == "unit-test/equancy/mock/YYYYMMDD_mock.csv"
+        rv.get_json()["prefix"] == "unit-test/equancy/mock/YYYYMMDD/YYYYMMDD_mock.csv"
     ), "Prefix should be predictible"
 
     # Entry must exist
     rv = client.get("/catalog/storage/not-found")
+    assert rv.status.startswith("404"), "HTTP Status is wrong"
+
+
+def test_catalog_identify(client):
+    # An entry must exist
+    rv = client.get("/catalog/identify/not-found")
+    assert rv.status.startswith("404"), "HTTP Status is wrong"
+
+    # Valid path can be found
+    rv = client.get(
+        "/catalog/identify/unit-test/equancy/mock/YYYYMMDD/YYYYMMDD_mock.csv"
+    )
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert len(rv.get_json()) == 1, "A single finding should be returned"
+    assert rv.get_json()[0]["entry"] == "test-imported", "Entry should be predictible"
+    assert rv.get_json()[0]["params"] == {
+        "date": "YYYYMMDD"
+    }, "Path parameters should be predictible"
+
+    # Backreference are taken in account
+    rv = client.get(
+        "/catalog/identify/unit-test/equancy/mock/YYYYMMDD/DDMMYYYY_mock.csv"
+    )
     assert rv.status.startswith("404"), "HTTP Status is wrong"
