@@ -111,3 +111,26 @@ def test_catalog_management(client, guest_token, author_token, valid_entry):
     rv = client.get("/catalog?full")
     assert rv.status.startswith("200"), "HTTP Status is wrong"
     assert rv.get_json() == payload, "Catalog should be predictible"
+
+
+def test_catalog_storage(client):
+    endpoint = "/catalog/storage/test-imported"
+    # Storage prefix can be partial
+    rv = client.get(endpoint)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert rv.get_json()["is_partial"], "Storage prefix should be partial"
+    assert (
+        rv.get_json()["prefix"] == "unit-test/equancy/mock/"
+    ), "Prefix should be predictible"
+
+    # Storage prefix can be completed
+    rv = client.get(endpoint, query_string={"date": "YYYYMMDD"})
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    assert not rv.get_json()["is_partial"], "Storage prefix should not be partial"
+    assert (
+        rv.get_json()["prefix"] == "unit-test/equancy/mock/YYYYMMDD_mock.csv"
+    ), "Prefix should be predictible"
+
+    # Entry must exist
+    rv = client.get("/catalog/storage/not-found")
+    assert rv.status.startswith("404"), "HTTP Status is wrong"

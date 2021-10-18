@@ -1,7 +1,7 @@
 from tests.fixtures import *
 
 DEFAULT_CONFIGURATION = {
-    "provider": "unknown",
+    "provider": "local",
     "csv_format": {
         "delimiter": ",",
         "quote_char": '"',
@@ -52,7 +52,7 @@ def test_atomic(client, author_token, admin_token):
     # Single configuration entry can be fetched
     rv = client.get(endpoint)
     assert rv.status.startswith("200"), "HTTP Status is wrong"
-    assert rv.get_json() == "aws", "Configuration should be default"
+    assert rv.get_json() == "local", "Configuration should be default"
     rv = client.get("configuration/not-present")
     assert rv.status.startswith("404"), "HTTP Status is wrong"
 

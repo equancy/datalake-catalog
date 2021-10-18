@@ -10,6 +10,7 @@ from datalake_catalog.model import (
     Configuration,
 )
 from datalake_catalog.schemas import SchemaValidator
+from string import Formatter
 
 catalog_validator = SchemaValidator("catalog")
 storage_validator = SchemaValidator("storage")
@@ -54,6 +55,34 @@ def get_catalog_entry(entry_id):
     if e is None:
         abort(404)
     return jsonify(e.spec), 200
+
+
+@app.get("/catalog/storage/<entry_id>")
+def get_catalog_storage(entry_id):
+    e = Catalog.get(key=entry_id)
+    if e is None:
+        abort(404)
+
+    entry_storage = e.spec["storage"]
+    prefix_params = {"domain": e.domain, "provider": e.provider, "feed": e.feed}
+
+    for param, value in request.args.items():
+        if param in entry_storage["path"]["params"]:
+            prefix_params[param] = value
+
+    formatter = Formatter().parse(entry_storage["path"]["pattern"])
+    result = ""
+    is_partial = False
+    for (literal_text, field_name, format_spec, conversion) in formatter:
+        result += literal_text
+        if field_name is not None:
+            if field_name in prefix_params:
+                result += str(prefix_params[field_name])
+            else:
+                is_partial = True
+                break
+
+    return jsonify(prefix=result, is_partial=is_partial), 200
 
 
 def validate_spec(spec):
@@ -118,6 +147,16 @@ def put_storage():
         )
     app.logger.info(f"User '{current_user['user']}' updated the Storage configuration")
     return jsonify(message="OK"), 200
+
+
+@app.get("/storage/<store_id>/<path:path>")
+def get_storage_path(store_id, path):
+    s = Storage.get(key=store_id)
+    if s is None:
+        abort(404)
+    real_path = s.get_real_path(path)
+    uri = s.build_uri(path)
+    return jsonify(bucket=s.bucket, path=real_path, uri=uri), 200
 
 
 @app.get("/configuration")

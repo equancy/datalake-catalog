@@ -8,6 +8,7 @@ from pkg_resources import resource_stream
 
 db = orm.Database()
 Pony(app)
+provider_scheme = {"aws": "s3", "gcp": "gs", "local": "file"}
 
 
 def connect(db_string):  # pragma: no cover
@@ -43,7 +44,7 @@ def _init_db():
 
     with resource_stream("datalake_catalog", f"config/default.json") as f:
         default_config = json.load(f)
-    
+
     with orm.db_session:
         for key, value in default_config.items():
             if Configuration.get(key=key) is None:
@@ -63,6 +64,17 @@ class Storage(db.Entity):
     key = orm.PrimaryKey(str)
     bucket = orm.Required(str)
     prefix = orm.Optional(str)
+
+    def get_real_path(self, path):
+        if self.prefix is not None and len(self.prefix) > 0:
+            return f"{self.prefix}/{path}"
+        return f"{path}"
+
+    def build_uri(self, path):
+        provider = Configuration["provider"].value
+        real_path = self.get_real_path(path)
+        scheme = provider_scheme[provider]
+        return f"{scheme}://{self.bucket}/{real_path}"
 
 
 class Configuration(db.Entity):

@@ -5,7 +5,7 @@
     "properties": {
         "provider": { 
             "description": "Cloud provider for the datalake",
-            "enum": ["aws", "gcp"] 
+            "enum": ["local", "aws", "gcp"] 
         },
         "csv_format": {
             "description": "Standard CSV dialect for the datalake",

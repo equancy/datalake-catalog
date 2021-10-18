@@ -1,5 +1,5 @@
 {
-    "provider": "unknown",
+    "provider": "local",
     "csv_format": {
         "delimiter": ",",
         "line_break": "\n",

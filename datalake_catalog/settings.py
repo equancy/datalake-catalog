@@ -14,5 +14,5 @@ class Default:
 
 
 class UnitTest(Default):
-    ENV = "testing"
+    TESTING = True
     SECRET_KEY = urandom(32)

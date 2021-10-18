@@ -10,7 +10,7 @@
     },
     "storage": {
         "path": {
-            "pattern": "{date}_{feed}.csv",
+            "pattern": "{domain}/{provider}/{feed}/{date}_{feed}.csv",
             "params": {
                 "date": "YYYY-MM-DD"
             }

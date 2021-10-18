@@ -1,9 +1,13 @@
 {
     "stronghold": {
-        "bucket": "datalake-v2-stronghold"
+        "bucket": "datalake-stronghold"
     },
-    "landing": {
-        "bucket": "datalake-v2-landing",
+    "input": {
+        "bucket": "datalake-landing",
         "prefix": "input"
+    },
+    "trash": {
+        "bucket": "datalake-landing",
+        "prefix": "trash"
     }
 }
