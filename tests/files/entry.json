@@ -20,41 +20,6 @@
             "pseudonymized"
         ]
     },
-    "collect": {
-        "files": [
-            {
-                "landing_folder" : "RVS/...",
-                "pattern": "(\\d{8})_\\d{6}/My-File\\.csv(\\.\\d{8}_\\d{6})?$",
-                "pattern_extract": {
-                    "date": "{capture[0]}"
-                },
-                "action_name": "transform_csv",
-                "action_params": {
-                    "delimiter": ";",
-                    "newline": "\\r\\n",
-                    "header": 1,
-                    "encoding": "ISO-8859-1"
-                },
-                "archive": true
-            },
-            {
-                "pattern": "(\\d{8})_myfile\\.csv$",
-                "pattern_extract": {
-                    "date": "{capture[0]}"
-                },
-                "action_name": "transfer",
-                "action_params": {
-                    "destination": "stronghold"
-                },
-                "archive": true
-            },
-            {
-                "pattern": "(\\d{8})_myfile\\.csv\\.OK$",
-                "action_name": "ignore",
-                "archive": false
-            }
-        ]
-    },
     "columns": [
         {
             "name": "column1",
