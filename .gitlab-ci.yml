@@ -1,0 +1,83 @@
+---
+stages:
+- Unit tests
+- Build
+- Release
+
+variables:
+  ECR: 641143039263.dkr.ecr.eu-west-3.amazonaws.com
+  IMAGE_NAME: equancy-datalake/catalog
+
+pytest:
+  stage: Unit tests
+  only:
+  - branches
+  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
+  before_script:
+  - poetry install --quiet
+  script:
+  - poetry run coverage run -m pytest -q --color=no
+  - poetry run coverage report
+
+python-build:
+  stage: Build
+  only:
+  - tags
+  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
+  script:
+  - poetry build --quiet
+  cache:
+    paths:
+    - dist
+    policy: push
+  
+create-ecr:
+  stage: Build
+  only:
+  - tags
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  script:
+  - |
+    aws ecr create-repository\
+      --repository-name "${IMAGE_NAME}" \
+      --image-tag-mutability "IMMUTABLE" \
+    || echo "OK already created"
+
+python-publish:
+  stage: Release
+  only:
+  - tags
+  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
+  script:
+  - poetry config repositories.equancy https://nexus.apps.equancy.cloud/repository/equancy-python/
+  - poetry config http-basic.equancy ${NEXUS_USER} ${NEXUS_PASSWORD}
+  - poetry publish -r equancy
+  cache:
+    paths:
+    - dist
+    policy: pull
+
+docker-publish:
+  stage: Release
+  only:
+  - tags
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+  - mkdir -p /kaniko/.docker
+  - echo '{"credsStore":"ecr-login"}' > /kaniko/.docker/config.json
+  script:
+  - |
+    /kaniko/executor \
+      --context $CI_PROJECT_DIR \
+      --dockerfile $CI_PROJECT_DIR/Dockerfile \
+      --destination "${ECR}/${IMAGE_NAME}:${CI_COMMIT_TAG}" \
+      --single-snapshot
+  cache:
+    paths:
+    - dist
+    policy: pull
+

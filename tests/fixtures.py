@@ -8,8 +8,8 @@ from datalake_catalog.model import connect
 import datalake_catalog.security
 import datalake_catalog.api
 
-connect("local://")
 app.config.from_object("datalake_catalog.settings.UnitTest")
+connect(app.config["DB_STRING"])
 
 
 @pytest.fixture

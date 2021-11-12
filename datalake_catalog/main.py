@@ -9,7 +9,8 @@ import datalake_catalog.api
 
 
 app.config.from_object("datalake_catalog.settings.Default")
-app.config.from_envvar("CATALOG_SETTINGS")
+if not app.config.from_envvar("CATALOG_SETTINGS", silent=True):
+    app.config.from_object("datalake_catalog.settings.Develop")
 
 connect(app.config["DB_STRING"])
 
@@ -17,11 +18,6 @@ connect(app.config["DB_STRING"])
 @click.group()
 def cli():
     pass
-
-
-@cli.command()
-def start():
-    app.run()
 
 
 @cli.command()
