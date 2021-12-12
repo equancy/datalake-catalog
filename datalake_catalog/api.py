@@ -54,7 +54,9 @@ def get_catalog_entry(entry_id):
     e = Catalog.get(key=entry_id)
     if e is None:
         abort(404)
-    return jsonify(e.spec), 200
+    r = e.spec
+    r["_key"] = entry_id
+    return jsonify(r), 200
 
 
 @app.get("/catalog/storage/<entry_id>")

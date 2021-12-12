@@ -85,7 +85,7 @@ def test_catalog_management(client, guest_token, author_token, valid_entry):
     # once created, entry is available
     rv = client.get(create_endpoint)
     assert rv.status.startswith("200"), "HTTP Status is wrong"
-    assert rv.get_json() == valid_entry, "Entry is not the same"
+    assert rv.get_json() == {"_key": "test-created", **valid_entry}, "Entry is not the same"
 
     # creation is merged with import
     rv = client.get("/catalog")
