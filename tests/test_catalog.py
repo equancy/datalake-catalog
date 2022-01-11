@@ -10,9 +10,7 @@ def valid_entry():
 def test_schema(client):
     rv = client.get("/catalog/schema")
     assert rv.status.startswith("200"), "HTTP Status is wrong"
-    assert (
-        rv.get_json()["$schema"] == "http://json-schema.org/draft-07/schema#"
-    ), "Response payload should be a schema"
+    assert rv.get_json()["$schema"] == "http://json-schema.org/draft-07/schema#", "Response payload should be a schema"
     assert (
         rv.get_json()["$schema"] == "http://json-schema.org/draft-07/schema#"
     ), "Response payload should be the catalog schema"
@@ -119,17 +117,13 @@ def test_catalog_storage(client):
     rv = client.get(endpoint)
     assert rv.status.startswith("200"), "HTTP Status is wrong"
     assert rv.get_json()["is_partial"], "Storage prefix should be partial"
-    assert (
-        rv.get_json()["prefix"] == "unit-test/equancy/mock/"
-    ), "Prefix should be predictible"
+    assert rv.get_json()["prefix"] == "unit-test/equancy/mock/", "Prefix should be predictible"
 
     # Storage prefix can be completed
     rv = client.get(endpoint, query_string={"date": "YYYYMMDD"})
     assert rv.status.startswith("200"), "HTTP Status is wrong"
     assert not rv.get_json()["is_partial"], "Storage prefix should not be partial"
-    assert (
-        rv.get_json()["prefix"] == "unit-test/equancy/mock/YYYYMMDD/YYYYMMDD_mock.csv"
-    ), "Prefix should be predictible"
+    assert rv.get_json()["prefix"] == "unit-test/equancy/mock/YYYYMMDD/YYYYMMDD_mock.csv", "Prefix should be predictible"
 
     # Entry must exist
     rv = client.get("/catalog/storage/not-found")
@@ -146,9 +140,7 @@ def test_catalog_identify(client):
     assert rv.status.startswith("200"), "HTTP Status is wrong"
     assert len(rv.get_json()) == 1, "A single finding should be returned"
     assert rv.get_json()[0]["entry"] == "test-imported", "Entry should be predictible"
-    assert rv.get_json()[0]["params"] == {
-        "date": "YYMMDD"
-    }, "Path parameters should be predictible"
+    assert rv.get_json()[0]["params"] == {"date": "YYMMDD"}, "Path parameters should be predictible"
 
     # Backreference are taken in account
     rv = client.get("/catalog/identify/unit-test/equancy/mock/YYMMDD/DDMMYY_mock.csv")

@@ -140,9 +140,7 @@ def post_catalog_import():
 @app.get("/storage")
 def get_storages():
     return (
-        jsonify(
-            {s.key: {"bucket": s.bucket, "prefix": s.prefix} for s in Storage.select()}
-        ),
+        jsonify({s.key: {"bucket": s.bucket, "prefix": s.prefix} for s in Storage.select()}),
         200,
     )
 
@@ -155,9 +153,7 @@ def put_storage():
     Storage.select().delete(bulk=True)
 
     for key, value in request.get_json().items():
-        insert_storage(
-            key, value["bucket"], value["prefix"] if "prefix" in value else None
-        )
+        insert_storage(key, value["bucket"], value["prefix"] if "prefix" in value else None)
     app.logger.info(f"User '{current_user['user']}' updated the Storage configuration")
     return jsonify(message="OK"), 200
 

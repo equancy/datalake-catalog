@@ -4,16 +4,16 @@ description = "Datalake Catalog"
 license = "MIT"
 name = "datalake-catalog"
 repository = "https://git.equancy.cloud/equancy/data-technologies/datalake-catalog"
-version = "1.0.0-alpha.2"
+version = "1.0.0"
 
 [tool.poetry.dependencies]
 Flask = "^2.0.2"
 Flask-JWT-Extended = "^4.3.1"
 click = "^8.0.3"
+gunicorn = "^20.1.0"
 jsonschema = "^4.2.1"
 pony = "^0.7.14"
 python = "^3.8"
-gunicorn = "^20.1.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"
@@ -27,6 +27,13 @@ requires = ["poetry-core>=1.0.0"]
 
 [tool.flake8]
 ignore = "E501,W503"
+
+[tool.black]
+line-length = 125
+target-version = ["py38"]
+
+[tool.coverage.report]
+omit = ["tests/*"]
 
 [tool.poetry.scripts]
 catalog = "datalake_catalog.main:cli"

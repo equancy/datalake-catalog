@@ -32,14 +32,6 @@
             "gdpr": {
                 "pii": true,
                 "drop": false
-            },
-            "dqm": {
-                "drop_on_error": "value",
-                "controls": [
-                    {
-                        "function": ["argv"]
-                    }
-                ]
             }
         }
     ],

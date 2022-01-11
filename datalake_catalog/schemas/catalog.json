@@ -47,36 +47,11 @@
                             "drop": { "type": "boolean" }
                         },
                         "additionalProperties": false
-                    },
-                    "dqm": { "$ref": "#/definitions/dqm" }
+                    }
                 },
                 "required": ["name", "type"],
                 "additionalProperties": false
             }
-        },
-        "dqm": {
-            "description": "Data Quality Management",
-            "type": "object",
-            "properties": {
-                "drop_on_error": { "type": "string" },
-                "controls": {
-                    "type": "array",
-                    "description": "controls is a list of functions names with their arguments vector",
-                    "items": {
-                        "type": "object",
-                        "maxProperties": 1,
-                        "additionalProperties": false,
-                        "patternProperties": {
-                            "^[A-Za-z0-9_]+$": {
-                                "type": "array",
-                                "items": { "type":"string" }
-                            }
-                        }
-                    }
-                }
-            },
-            "required": ["controls"],
-            "additionalProperties": false
         },
         "metadata": {
             "description": "Any metadata that helps describing the dataset",

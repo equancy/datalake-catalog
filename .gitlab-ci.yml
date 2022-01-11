@@ -5,8 +5,8 @@ stages:
 - Release
 
 variables:
-  ECR: 641143039263.dkr.ecr.eu-west-3.amazonaws.com
-  IMAGE_NAME: equancy-datalake/catalog
+  ECR: public.ecr.aws/equancy-tech
+  IMAGE_NAME: datalake-catalog
 
 pytest:
   stage: Unit tests
@@ -42,7 +42,6 @@ create-ecr:
   - |
     aws ecr create-repository\
       --repository-name "${IMAGE_NAME}" \
-      --image-tag-mutability "IMMUTABLE" \
     || echo "OK already created"
 
 python-publish:

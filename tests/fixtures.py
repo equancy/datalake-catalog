@@ -27,18 +27,14 @@ def guest_token():
 @pytest.fixture
 def author_token():
     with app.app_context():
-        token = create_access_token(
-            identity="Test Author", additional_claims={"role": "author"}
-        )
+        token = create_access_token(identity="Test Author", additional_claims={"role": "author"})
     return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
 def admin_token():
     with app.app_context():
-        token = create_access_token(
-            identity="Test Admin", additional_claims={"role": "admin"}
-        )
+        token = create_access_token(identity="Test Admin", additional_claims={"role": "admin"})
     return {"Authorization": f"Bearer {token}"}
 
 

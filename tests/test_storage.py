@@ -40,19 +40,11 @@ def test_storage_path(client):
     # Store path can be factored
     rv = client.get("/storage/stronghold/path/to/file.csv")
     assert rv.status.startswith("200"), "HTTP Status is wrong"
-    assert (
-        rv.get_json()["path"] == "path/to/file.csv"
-    ), "Store without prefix should return the path"
-    assert (
-        rv.get_json()["uri"] == "gs://datalake-stronghold/path/to/file.csv"
-    ), "URI should be predictible"
+    assert rv.get_json()["path"] == "path/to/file.csv", "Store without prefix should return the path"
+    assert rv.get_json()["uri"] == "gs://datalake-stronghold/path/to/file.csv", "URI should be predictible"
 
     # Store path includes the prefix
     rv = client.get("/storage/input/path/to/file.csv")
     assert rv.status.startswith("200"), "HTTP Status is wrong"
-    assert (
-        rv.get_json()["path"] == "input/path/to/file.csv"
-    ), "Store without prefix should return the path"
-    assert (
-        rv.get_json()["uri"] == "gs://datalake-landing/input/path/to/file.csv"
-    ), "URI should be predictible"
+    assert rv.get_json()["path"] == "input/path/to/file.csv", "Store without prefix should return the path"
+    assert rv.get_json()["uri"] == "gs://datalake-landing/input/path/to/file.csv", "URI should be predictible"

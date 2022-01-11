@@ -20,9 +20,7 @@ def connect(db_string):  # pragma: no cover
         db.bind(provider="sqlite", filename=path, create_db=True)
     elif r.scheme == "mysql":
         host = f"{r.hostname}:{r.port}" if r.port is not None else r.hostname
-        db.bind(
-            provider="mysql", host=host, user=r.username, passwd=r.password, db=path[1:]
-        )
+        db.bind(provider="mysql", host=host, user=r.username, passwd=r.password, db=path[1:])
     elif r.scheme == "postgresql":
         host = f"{r.hostname}:{r.port}" if r.port is not None else r.hostname
         db.bind(
@@ -70,12 +68,12 @@ class Catalog(db.Entity):
         for (literal_text, field_name, format_spec, conversion) in formatter:
             result += re.escape(literal_text)
             if field_name is not None:
-                if field_name in fields: # backreference for existing name
+                if field_name in fields:  # backreference for existing name
                     result += f"(?P={field_name})"
                 else:
-                    fields.append(field_name) # new name reference
+                    fields.append(field_name)  # new name reference
                     result += f"(?P<{field_name}>.+)"
-        return re.compile(f"{result}$") # ensure only suffixes are matched
+        return re.compile(f"{result}$")  # ensure only suffixes are matched
 
 
 class Storage(db.Entity):
