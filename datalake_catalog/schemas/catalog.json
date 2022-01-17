@@ -43,14 +43,13 @@
                     "gdpr": {
                         "type": "object",
                         "properties": {
-                            "pii":  { "type": "boolean" },
-                            "drop": { "type": "boolean" }
+                            "pii":  { "type": "boolean" }
                         },
-                        "additionalProperties": false
+                        "additionalProperties": true
                     }
                 },
                 "required": ["name", "type"],
-                "additionalProperties": false
+                "additionalProperties": true
             }
         },
         "metadata": {

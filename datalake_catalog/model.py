@@ -10,7 +10,7 @@ from pkg_resources import resource_stream
 
 db = orm.Database()
 Pony(app)
-provider_scheme = {"aws": "s3", "gcp": "gs", "local": "file"}
+provider_scheme = {"aws": "s3", "gcp": "gs", "azure": "adls", "local": "file"}
 
 
 def connect(db_string):  # pragma: no cover
