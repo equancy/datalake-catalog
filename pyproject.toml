@@ -1,5 +1,9 @@
 [tool.poetry]
 authors = ["Didier SCHMITT <dschmitt@equancy.com>"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+]
 description = "Datalake Catalog"
 license = "MIT"
 name = "datalake-catalog"

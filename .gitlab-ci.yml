@@ -44,15 +44,27 @@ create-ecr:
       --repository-name "${IMAGE_NAME}" \
     || echo "OK already created"
 
-python-publish:
+nexus-publish:
   stage: Release
   only:
   - tags
   image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
   script:
   - poetry config repositories.equancy https://nexus.apps.equancy.cloud/repository/equancy-python/
-  - poetry config http-basic.equancy ${NEXUS_USER} ${NEXUS_PASSWORD}
+  - poetry config http-basic.equancy "${NEXUS_USER}" "${NEXUS_PASSWORD}"
   - poetry publish -r equancy
+  cache:
+    paths:
+    - dist
+    policy: pull
+  
+pypi-publish:
+  stage: Release
+  only:
+  - tags
+  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
+  script:
+  - poetry publish -u "${PYPI_USER}" -p "${PYPI_PASSWORD}"
   cache:
     paths:
     - dist
