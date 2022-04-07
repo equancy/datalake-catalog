@@ -15,12 +15,12 @@ provider_scheme = {"aws": "s3", "gcp": "gs", "azure": "adls", "local": "file"}
 
 def connect(db_string):  # pragma: no cover
     r = urlparse(db_string)
-    if r.scheme == "sqlite":
-        path = r.path[1:]  # strip the first /
+    path = r.path[1:]  # strip the first /
+    if r.scheme == "sqlite":        
         db.bind(provider="sqlite", filename=path, create_db=True)
     elif r.scheme == "mysql":
         host = f"{r.hostname}:{r.port}" if r.port is not None else r.hostname
-        db.bind(provider="mysql", host=host, user=r.username, passwd=r.password, db=path[1:])
+        db.bind(provider="mysql", host=host, user=r.username, passwd=r.password, db=path)
     elif r.scheme == "postgresql":
         host = f"{r.hostname}:{r.port}" if r.port is not None else r.hostname
         db.bind(
@@ -28,7 +28,7 @@ def connect(db_string):  # pragma: no cover
             user=r.username,
             password=r.password,
             host=host,
-            database=path[1:],
+            database=path,
         )
     elif r.scheme == "oracle":
         db.bind(provider="oracle", user=r.username, password=r.password, dsn=r.hostname)
