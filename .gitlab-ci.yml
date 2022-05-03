@@ -16,7 +16,20 @@ pytest:
       - tests/**/*
     refs:
       - branches
-  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
+  image: public.ecr.aws/equancy-tech/ci-python:3.8
+  services:
+    - alias: mariadb
+      name: mariadb:10
+    - alias: postgres
+      name: postgres:13
+  variables:
+    MARIADB_USER: api
+    MARIADB_PASSWORD: unittest
+    MARIADB_DATABASE: catalog
+    MARIADB_RANDOM_ROOT_PASSWORD: "true"
+    POSTGRES_USER: api
+    POSTGRES_PASSWORD: unittest
+    POSTGRES_DB: catalog
   before_script:
   - poetry install --quiet
   script:
@@ -27,7 +40,7 @@ python-build:
   stage: Build
   only:
   - tags
-  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
+  image: public.ecr.aws/equancy-tech/ci-python:3.8
   script:
   - poetry build --quiet
   cache:
@@ -35,38 +48,11 @@ python-build:
     - dist
     policy: push
   
-create-ecr:
-  stage: Build
-  only:
-  - tags
-  image:
-    name: amazon/aws-cli
-    entrypoint: [""]
-  script:
-  - |
-    aws ecr create-repository\
-      --repository-name "${IMAGE_NAME}" \
-    || echo "OK already created"
-
-nexus-publish:
-  stage: Release
-  only:
-  - tags
-  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
-  script:
-  - poetry config repositories.equancy https://nexus.apps.equancy.cloud/repository/equancy-python/
-  - poetry config http-basic.equancy "${NEXUS_USER}" "${NEXUS_PASSWORD}"
-  - poetry publish -r equancy
-  cache:
-    paths:
-    - dist
-    policy: pull
-  
 pypi-publish:
   stage: Release
   only:
   - tags
-  image: 641143039263.dkr.ecr.eu-west-3.amazonaws.com/runner/ci-python:3.8
+  image: public.ecr.aws/equancy-tech/ci-python:3.8
   script:
   - poetry publish -u "${PYPI_USER}" -p "${PYPI_PASSWORD}"
   cache:

@@ -1,0 +1,21 @@
+---
+version: "3.8"
+services:
+  mariadb:
+    image: mariadb:10
+    ports:
+    - 3306:3306
+    environment:
+      MARIADB_USER: api
+      MARIADB_PASSWORD: unittest
+      MARIADB_DATABASE: catalog
+      MARIADB_RANDOM_ROOT_PASSWORD: yes
+
+  postgres:
+    image: postgres:13
+    ports:
+    - 5432:5432
+    environment:
+      POSTGRES_USER: api
+      POSTGRES_PASSWORD: unittest
+      POSTGRES_DB: catalog

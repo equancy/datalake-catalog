@@ -13,25 +13,17 @@ Pony(app)
 provider_scheme = {"aws": "s3", "gcp": "gs", "azure": "adls", "local": "file"}
 
 
-def connect(db_string):  # pragma: no cover
+def connect(db_string):
     r = urlparse(db_string)
     path = r.path[1:]  # strip the first /
-    if r.scheme == "sqlite":        
+    if r.scheme == "sqlite":
         db.bind(provider="sqlite", filename=path, create_db=True)
     elif r.scheme == "mysql":
-        host = f"{r.hostname}:{r.port}" if r.port is not None else r.hostname
-        db.bind(provider="mysql", host=host, user=r.username, passwd=r.password, db=path)
+        port = r.port if r.port is not None else 3306
+        db.bind(provider="mysql", host=r.hostname, port=port, user=r.username, passwd=r.password, db=path)
     elif r.scheme == "postgresql":
-        host = f"{r.hostname}:{r.port}" if r.port is not None else r.hostname
-        db.bind(
-            provider="postgres",
-            user=r.username,
-            password=r.password,
-            host=host,
-            database=path,
-        )
-    elif r.scheme == "oracle":
-        db.bind(provider="oracle", user=r.username, password=r.password, dsn=r.hostname)
+        port = r.port if r.port is not None else 5432
+        db.bind(provider="postgres", user=r.username, password=r.password, host=r.hostname, database=path, port=port)
     elif r.scheme == "local":
         db.bind(provider="sqlite", filename=":memory:")
     else:

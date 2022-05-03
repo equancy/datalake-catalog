@@ -1,6 +1,6 @@
 FROM python:3.8-alpine
 
-LABEL MAINTAINER="Didier Schmitt <dschmitt@equancy.com>"
+LABEL org.opencontainers.image.authors="Didier Schmitt <dschmitt@equancy.com>"
 
 ENV CATALOG_WORKERS=1
 
