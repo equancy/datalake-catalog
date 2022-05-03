@@ -8,7 +8,22 @@ variables:
   ECR: public.ecr.aws/equancy-tech
   IMAGE_NAME: datalake-catalog
 
-pytest:
+pytest-api:
+  stage: Unit tests
+  only:
+    changes:
+      - datalake_catalog/**/*
+      - tests/**/*
+    refs:
+      - branches
+  image: public.ecr.aws/equancy-tech/ci-python:3.8
+  before_script:
+  - poetry install --quiet
+  script:
+  - poetry run coverage run -m pytest -m "not backends" -q --color=no
+  - poetry run coverage report
+
+pytest-backends:
   stage: Unit tests
   only:
     changes:
@@ -33,8 +48,7 @@ pytest:
   before_script:
   - poetry install --quiet
   script:
-  - poetry run coverage run -m pytest -q --color=no
-  - poetry run coverage report
+  - poetry run pytest -m "backends" -q --color=no
 
 python-build:
   stage: Build
