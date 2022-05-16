@@ -112,6 +112,18 @@ def put_catalog_entry(entry_id):
     return jsonify(message="OK"), 200
 
 
+@app.delete("/catalog/entry/<entry_id>")
+@jwt_required()
+def delete_catalog_entry(entry_id):
+    check_role_author()
+    e = Catalog.get(key=entry_id)
+    if e is None:
+        abort(404)
+    e.delete()
+    app.logger.info(f"User '{current_user['user']}' deleted the entry '{entry_id}'")
+    return jsonify(message="OK"), 200
+
+
 @app.post("/catalog/import")
 @jwt_required()
 def post_catalog_import():

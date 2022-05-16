@@ -94,6 +94,31 @@ def test_catalog_management(client, guest_token, author_token, valid_entry):
     }, "Catalog should be predictible"
 
     # ---------------------------
+    # Single entry deletion
+
+    # entry exist at first
+    rv = client.get(create_endpoint)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+
+    # authorization is required
+    rv = client.delete(create_endpoint)
+    assert rv.status.startswith("401"), "HTTP Status is wrong"
+
+    # permission is required
+    rv = client.delete(create_endpoint, headers=guest_token)
+    assert rv.status.startswith("403"), "HTTP Status is wrong"
+
+    # an author may delete
+    rv = client.delete(create_endpoint, headers=author_token)
+    assert rv.status.startswith("200"), "HTTP Status is wrong"
+    rv = client.delete("/catalog/entry/unknown", headers=author_token)
+    assert rv.status.startswith("404"), "HTTP Status is wrong"
+
+    # once deleted, entry is no longer available
+    rv = client.get(create_endpoint)
+    assert rv.status.startswith("404"), "HTTP Status is wrong"
+
+    # ---------------------------
     # Import can be authoritative
 
     # import can truncate
