@@ -46,7 +46,7 @@ pytest-backends:
     POSTGRES_PASSWORD: unittest
     POSTGRES_DB: catalog
   before_script:
-  - poetry install --quiet
+  - poetry install --quiet --extras "all"
   script:
   - poetry run pytest -m "backends" -q --color=no
 

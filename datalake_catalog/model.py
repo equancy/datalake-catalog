@@ -117,7 +117,7 @@ def upsert_catalog(key, spec):
         e.domain = domain
         e.provider = provider
         e.feed = feed
-        e.path_pattern
+        e.path_pattern = path_pattern
     except ObjectNotFound:
         e = Catalog(
             key=key,

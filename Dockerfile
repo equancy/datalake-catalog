@@ -8,7 +8,10 @@ COPY gunicorn.conf.py /etc/datacatalog/conf.py
 
 COPY ./dist /usr/src
 
-RUN pip install /usr/src/*.whl \
+RUN pip install \
+        /usr/src/*.whl \
+        psycopg2-binary \
+        pymysql \
     && rm -rf /usr/src/*
 
 WORKDIR /usr/src
