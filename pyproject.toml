@@ -9,7 +9,7 @@ license = "MIT"
 name = "datalake-catalog"
 readme = "README.md"
 repository = "https://github.com/equancy/datalake-catalog"
-version = "1.0.4"
+version = "1.0.5"
 
 [tool.poetry.dependencies]
 Flask = "^2.1.2"
